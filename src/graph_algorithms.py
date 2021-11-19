@@ -8,7 +8,7 @@ def max_dom_set_items(list_size):
     return int(log2n) + int(log2n % 1 > 0)
 
 # @jit(nopython=True)
-def check_if_dom_set(adjacency_matrix, set, vertex_len):
+def check_dom_set(adjacency_matrix, set, vertex_len):
     checked_vertex = np.zeros(vertex_len, dtype=int)
     print("for:", set)
     for i in set:
@@ -42,7 +42,7 @@ def min_dom_set_bruteforce(adjacency_matrix):
         print("Revisando para n=",n)
         for comb in itertools.combinations(vertex_index,n):
             # Check if dom set
-            if check_if_dom_set(adjacency_matrix, 
+            if check_dom_set(adjacency_matrix, 
                 np.array(list(comb)),
                 np.uint32(vertex_len)) == True:
                 dominating_sets.append(comb)
