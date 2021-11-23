@@ -12,10 +12,12 @@ import csv_handler
 if __name__ == "__main__":
     file_path = sys.argv[1]
     adjacency_matrix= csv_handler.csv_to_numpy_matrix_list(file_path)
-    print(adjacency_matrix)
+    # print(adjacency_matrix)
 
-
+    print("brute force")
     mds = ga.min_dom_set_bruteforce(adjacency_matrix)
+    print("GLR")
+    mds = ga.min_dom_set(adjacency_matrix)
 
     ##########################
     # G1 = nx.DiGraph(np.matrix(matrix_list))
