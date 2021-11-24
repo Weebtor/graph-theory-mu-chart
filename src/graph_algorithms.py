@@ -1,9 +1,10 @@
 import itertools
 import numpy as np
 from numba import jit,objmode
+from numpy.core.records import array
 
 
-dom_set = []
+
 
 
 
@@ -46,14 +47,10 @@ def get_order(adjacency_matrix, total_items):
     return order_list[np.argsort(order_list[:, 1])]
 
 
+
+dom_set = []
 @jit(["uint8(float32[:,:], uint8, uint8[:], uint8[:],uint8)"], nopython = True)
-def generalized_leaf_removal(
-    adjacency_matrix, 
-    vertex_index, 
-    dominated_set, 
-    set_route,
-    max_depth
-):
+def generalized_leaf_removal(adjacency_matrix, vertex_index, dominated_set, set_route, max_depth):
     current_depth = set_route.shape[0]
 
     if current_depth > max_depth:
@@ -87,20 +84,38 @@ def generalized_leaf_removal(
             dom_set.append(set_route)
         return np.uint8(current_depth)
     return np.uint8(max_depth)
-    
-    # return np.array([vertex_index], dtype = np.uint8)
 
-    # print("ind:", vertex_index, "dominated:",copy_dominated_set)
-# @jit(["float32(float32[:,:],uint8[:])"], nopython = True)
+@jit(["Tuple((float32, uint8[:]))(float32[:,:],uint8[:])"], nopython = True)
 def get_mds_value(adjacency_matrix, dominating_set):
-    print(dominating_set)
-    who_dominate_who = np.zeros((adjacency_matrix.shape[0]),dtype=np.uint8)
-    print(who_dominate_who)
-    for i in dominating_set:
-        print(adjacency_matrix[i])
+    # print(dominating_set)
+    dominated_vertex = np.zeros((adjacency_matrix.shape[0]),dtype=np.uint8)
+    # print(dominated_vertex)
+
+    acumulated_value = np.float32(0)
+    for j, val in enumerate(dominated_vertex):
+        
+        edge_value = np.float32(0)
+        for i in dominating_set:
+            if adjacency_matrix[i][j] > edge_value:
+                edge_value = adjacency_matrix[i][j]
+                dominated_vertex[j] = i
+        acumulated_value = acumulated_value + edge_value
+    
+    return acumulated_value, dominated_vertex
 
 
-
+@jit(["Tuple((uint8[:], float32, uint8[:]))(float32[:,:],uint8[:,:])"], nopython = True)
+def best_option_from_dom_set(adjacency_matrix, mds_sets):
+    best_set_index = np.uint8(0)
+    best_set_value = np.float32(0)
+    set_domination = np.array([0],dtype=np.uint8)
+    for i, val in enumerate(mds_sets):
+        value,domination = get_mds_value(adjacency_matrix,mds_sets[i])
+        if value > best_set_value:
+            best_set_value = value
+            best_set_index = i
+            set_domination = domination
+    return mds_sets[best_set_index],best_set_value, set_domination
 
 def min_dom_set(adjacency_matrix):
     # print(adjacency_matrix)
@@ -126,9 +141,12 @@ def min_dom_set(adjacency_matrix):
         if i.shape[0] == max_depth:
             mds = np.vstack((mds,i)) if mds.size else i
             # mds = np.vstack((mds,i))
+    for i in mds:
+        print(i)
     
-    print(mds)
-    get_mds_value(numpy_matrix,mds[0])
+    best_set,value, set_domination = best_option_from_dom_set(numpy_matrix, np.array(mds, dtype = np.uint8))
+    print(best_set,value, set_domination)
+        
 
 
 def min_dom_set_bruteforce(adjacency_matrix):
@@ -152,6 +170,7 @@ def min_dom_set_bruteforce(adjacency_matrix):
                 dominating_sets.append(comb)
             # print(comb)
             pass
-
+    best_set,value, set_domination = best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dominating_sets, dtype = np.uint8))
+    print(best_set,value, set_domination)
     return dominating_sets
     
