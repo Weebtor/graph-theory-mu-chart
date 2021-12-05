@@ -49,35 +49,45 @@ def get_order(adjacency_matrix, total_items):
 
 
 dom_set = []
-@jit(["uint8(float32[:,:], uint8, uint8[:], uint8[:],uint8)"], nopython = True)
-def generalized_leaf_removal(adjacency_matrix, vertex_index, dominated_set, set_route, max_depth):
+@jit(["uint8(float32[:,:], uint8, uint8[:], uint8[:],uint8, uint8[:])"], nopython = True)
+def generalized_leaf_removal(adjacency_matrix, vertex_index, dominated_set, set_route, max_depth, useless_set):
+
     current_depth = set_route.shape[0]
 
     if current_depth > max_depth:
         return np.uint8(max_depth)
     copy_dominated_set = np.copy(dominated_set) # Realiza una copia de los vertices dominados
-    copy_dominated_set[vertex_index] = 1        # Se marca asi mismo com dominado
-    
-    
 
 
-    for j, val in enumerate(adjacency_matrix[vertex_index]):   # Itera sobre sobre la fila I de la matriz de adjacencia
-        if val > 0:                                 # Evalua si existe una arista de I->J
+    copy_dominated_set[vertex_index] = 1                        # Se marca asi mismo com dominado
+    for j, val in enumerate(adjacency_matrix[vertex_index]):    # Itera sobre sobre la fila I de la matriz de adjacencia
+        if val > 0:                                             # Evalua si existe una arista de I->J
             copy_dominated_set[j] = 1
 
-    
     is_this_dom_set = np.bool_(True)
+
     for i, vertex in enumerate(copy_dominated_set):
         if vertex == 0:
             is_this_dom_set = np.bool_(False)
-            max_depth = generalized_leaf_removal(
-                adjacency_matrix, 
-                np.uint8(i),
-                copy_dominated_set, 
-                np.append(set_route,i),
-                max_depth
-            )
+            max_depth = generalized_leaf_removal(adjacency_matrix, np.uint8(i),copy_dominated_set, np.append(set_route,i),max_depth, np.append(useless_set,i))
+        elif vertex == 1: # Verifica si estos vertices son un aporte
+            evaluacion_copy = np.copy(dominated_set)
+            for j, val in enumerate(adjacency_matrix[i]):
+                if val > 0:
+                    evaluacion_copy[j] = 1
+            # print("ev:",evaluacion_copy)
+            # print("og:",copy_dominated_set)
+            resp = np.array_equal(evaluacion_copy,copy_dominated_set )
+            # print("equal:",resp)
+            if resp == False and i not in set_route and  i not in useless_set:
+                max_depth = generalized_leaf_removal(adjacency_matrix, np.uint8(i),copy_dominated_set, np.append(set_route,i),max_depth, np.append(useless_set,i))
+            elif resp == True:
+                useless_set = np.append(useless_set,np.uint8(i))
 
+
+            # print(i, vertex)
+            # print(adjacency_matrix)
+            # print(copy)
     if is_this_dom_set:
         # print("max_depth:",max_depth)
         with objmode():  # annotate return type
@@ -85,6 +95,16 @@ def generalized_leaf_removal(adjacency_matrix, vertex_index, dominated_set, set_
         return np.uint8(current_depth)
     return np.uint8(max_depth)
 
+
+
+def GLR(adjacency_matrix, max_depth):
+    
+    # Reglas de GLR:
+    # 1- Si un vertice i no tiene a nadie que lo domine en el grafo actual, este vertice se considera como candidato a vertice dominante
+    # 2- Si un vertice j tiene un unico vertice que lo puede dominar (vertice k) y j no tiene a quien dominar, k es candidato set dominante
+    # 3- Si un vertice l  puede dominar a solo un vertice (vertice m) 
+
+    pass
 @jit(["Tuple((float32, uint8[:]))(float32[:,:],uint8[:])"], nopython = True)
 def get_mds_value(adjacency_matrix, dominating_set):
     # print(dominating_set)
@@ -124,6 +144,7 @@ def min_dom_set(adjacency_matrix):
     max_depth = np.uint8(max_dom_set_items(number_of_vertex))
     # vertex_priority = get_order(numpy_matrix,number_of_vertex)
     intial_dominated_set = np.zeros(number_of_vertex, dtype=np.uint8)
+    print(intial_dominated_set)
     # dom_set_list = np.array([])
     for i in range(0, number_of_vertex):
         max_depth = generalized_leaf_removal(
@@ -131,24 +152,20 @@ def min_dom_set(adjacency_matrix):
             np.uint8(i),
             intial_dominated_set,
             np.array([i], dtype = np.uint8),
-            max_depth
+            max_depth,
+            np.array([i], dtype = np.uint8)
 
         )
     mds = np.array([])
-#   >>> ys = np.array([])
-#   >>> ys = np.vstack([ys, xs]) if ys.size else xs
+
     for i in dom_set:
         if i.shape[0] == max_depth:
             mds = np.vstack((mds,i)) if mds.size else i
             # mds = np.vstack((mds,i))
-    for i in mds:
-        print(i)
     
     best_set,value, set_domination = best_option_from_dom_set(numpy_matrix, np.array(mds, dtype = np.uint8))
     print(best_set,value, set_domination)
         
-
-
 def min_dom_set_bruteforce(adjacency_matrix):
     dominating_sets = []
     # print(dominating_sets)

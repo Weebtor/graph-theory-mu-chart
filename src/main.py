@@ -9,19 +9,29 @@ import graph_algorithms as ga
 
 import csv_handler
 
+import time
+
 if __name__ == "__main__":
     file_path = sys.argv[1]
+
+    # Python obtiene el primer argumento como la ruta del archivo csv
     adjacency_matrix= csv_handler.csv_to_numpy_matrix_list(file_path)
     # print(adjacency_matrix)
-
     print("brute force")
+    tic = time.time()
     mds = ga.min_dom_set_bruteforce(adjacency_matrix)
+    toc = time.time()
+    print("time:", toc-tic)
     print("GLR")
+    tic = time.time()
     mds = ga.min_dom_set(adjacency_matrix)
+    toc = time.time()
+    print("time:", toc-tic)
 
-    ##########################
-    # G1 = nx.DiGraph(np.matrix(matrix_list))
-    # nx.draw(G1)
+    # ##########################
+    # G1 = nx.DiGraph(np.matrix(adjacency_matrix))
+    # print(nx.find_cycle(G1, orientation="original"))
+    # nx.draw_kamada_kawai(G1,  with_labels = True)
     # plt.savefig("filename.png")
     #######################
     # # for i, arg in enumerate(sys.argv):
