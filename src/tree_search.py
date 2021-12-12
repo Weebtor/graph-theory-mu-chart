@@ -1,14 +1,16 @@
 import numpy as np
 from numba import jit,objmode
 
+from graph_algorithms import check_dom_set
 
-# @jit(["uint32[:](float32[:,:])"], nopython = True)
-# def Gamma_function(numpy_matrix, vertex_index):
-#     domination_set = np.empty(0, dtype=np.uint32)
-#     for index, mu_result in enumerate(numpy_matrix[vertex_index]):
-#         if index != vertex_index and mu_result >= np.float32(5.0):
-#             domination_set = np.append(domination_set, np.uint32(index))
-#     return domination_set
+
+@jit(["uint32[:](float32[:,:], uint32)"], nopython = True)
+def Gamma_function_vertex(numpy_matrix, vertex_i):
+    domination_set = np.empty(0, dtype=np.uint32)
+    for j, val in enumerate(numpy_matrix[vertex_i]):
+        if vertex_i != j and  numpy_matrix[vertex_i][j] >= np.float32(5):
+            domination_set = np.append(domination_set, np.uint32(j))
+    return domination_set
 
 @jit(["boolean(float32[:,:], uint32[:], uint32[:])"], nopython = True)
 def feasibility_test(numpy_matrix, F_k, C_k_plus):
@@ -75,7 +77,51 @@ def action_step_3(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k):
 
     return Set_k, C_k_plus,C_k_minus, F_k
 
-def action_step_4():
+@jit(["boolean(float32[:,:], uint32, uint32[:])"], nopython = True)
+def check_if_is_dominated_by_set(numpy_matrix, q, dom_set ):
+    is_dominated = np.bool_(False)
+    for i in dom_set:
+        if i != q and numpy_matrix[i][q] >= 5:
+            return np.bool_(True)
+    return is_dominated
+    
+
+@jit(["void(float32[:,:], uint32[:], uint32[:], uint32[:], uint32[:])"], nopython = True)
+def action_step_4(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k):
+    Set_k_prev = np.copy(Set_k[:-1])
+    print("Set_k", Set_k)
+    print("Set_k_prev", Set_k_prev)
+
+    for q_index, q in enumerate(Set_k_prev):
+        if check_if_is_dominated_by_set(numpy_matrix, q, Set_k) == True:
+            print(q, "cumple con ?")
+            gamma_set = Gamma_function_vertex(numpy_matrix, np.uint32(q))
+            print("q domina a", gamma_set)
+            dom_set_no_q = np.delete(np.copy(Set_k), q_index)
+            print("no q", dom_set_no_q)
+            go_step_5 = np.bool_(True)
+            for j in gamma_set:
+                if j in Set_k or is_dominated(numpy_matrix, dom_set_no_q, j) == False:
+                    print(j, "pertenece a", Set_k)
+                    go_step_6 = np.bool_(False)
+                    print("Go step 6")
+                    # Go step 5
+                    break
+            if go_step_5:
+                print("Go step 5")
+
+            # Go step 5
+
+        else:
+            print(q, "no cumple con ?")
+            # Go step 5
+    
+    # for i in Set_k:
+    #     for q in Set_k_prev:
+    #         ev_2 = np.bool_(False) 
+    #         if i != q and numpy_matrix[i][q] >= np.float32(5):
+    #             # Step 6?
+    #             break
     pass
 
 @jit(["void(float32[:,:])"], nopython = True)
@@ -87,11 +133,24 @@ def initialisation(numpy_matrix): # Step 1
     # Step 2: Ver si es factible
     if feasibility_test(numpy_matrix, F_k, C_k_plus):
         print("es factible")
-        Set_k, C_k_plus,C_k_minus, F_k = action_step_3(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k)
+        Set_k, C_k_plus,C_k_minus, F_k = action_step_3(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k) # it 1
         print(Set_k)
         print(C_k_plus)
         print(C_k_minus)
         print("Non dominated:",F_k)
+        Set_k, C_k_plus,C_k_minus, F_k = action_step_3(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k) # it 2
+        print(Set_k)
+        print(C_k_plus)
+        print(C_k_minus)
+        print("Non dominated:",F_k)
+        action_step_4(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k)
+        Set_k, C_k_plus,C_k_minus, F_k = action_step_3(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k) # it 3
+        print(Set_k)
+        print(C_k_plus)
+        print(C_k_minus)
+        print("Non dominated:",F_k)
+        action_step_4(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k)
+        
 
     # Step 3: Elegir vertice
     else:
