@@ -1,15 +1,16 @@
-from data_manager import DataManager
-import graph_theory as gt
-import matplotlib.pyplot as plt
-import networkx as nx
+# from data_manager import DataManager
+# import graph_theory as gt
+# import matplotlib.pyplot as plt
+# import networkx as nx
 import sys
 import numpy as np
 
 import graph_algorithms as ga
 
 import csv_handler
-
+# import GLR 
 import time
+import tree_search
 
 if __name__ == "__main__":
     file_path = sys.argv[1]
@@ -17,16 +18,22 @@ if __name__ == "__main__":
     # Python obtiene el primer argumento como la ruta del archivo csv
     adjacency_matrix= csv_handler.csv_to_numpy_matrix_list(file_path)
     # print(adjacency_matrix)
-    print("brute force")
-    tic = time.time()
-    mds = ga.min_dom_set_bruteforce(adjacency_matrix)
-    toc = time.time()
-    print("time:", toc-tic)
-    print("GLR")
-    tic = time.time()
-    mds = ga.min_dom_set(adjacency_matrix)
-    toc = time.time()
-    print("time:", toc-tic)
+    # print("brute force")
+    # tic = time.time()
+    # mds = ga.min_dom_set_bruteforce(adjacency_matrix)
+    # toc = time.time()
+    # print("time:", toc-tic)
+    # print("no GLR")
+    # tic = time.time()
+    # mds = ga.min_dom_set(adjacency_matrix)
+    # toc = time.time()
+    # print("time:", toc-tic)
+    a = tree_search.run(adjacency_matrix)
+    #######################
+
+    ######################
+
+    # adjacency_matrix = GLR.encontrar_mds(np.array(adjacency_matrix, dtype=np.float32))
 
     # ##########################
     # G1 = nx.DiGraph(np.matrix(adjacency_matrix))
