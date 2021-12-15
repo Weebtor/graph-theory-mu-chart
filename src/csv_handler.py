@@ -10,7 +10,6 @@ def csv_to_numpy_matrix_list(file_path):
     char_list = list(mu_chart.columns[1:])
     matrix_list = []
 
-    # print(char_list)
     for i in range(0,len(char_list)):
         char_name = char_list[i]
         
@@ -18,15 +17,11 @@ def csv_to_numpy_matrix_list(file_path):
         mu_list = []
         for col in mu_chart.columns[1:]:
             value = mu_chart[col][index_char-1]
-            if value != "-" and float(value) >= 5 and i!=col:
+            if value != "-" and float(value) > 5 and i!=col:
                 mu_list.append(float(value))
             else:
                 mu_list.append(0.0)
-        # print(index_char, char_name)
         matrix_list.append(mu_list) 
-    #     print(char_name, mu_list)
-    # print(len(char_list))
-    print(matrix_list)
     return matrix_list
-    # for col in mu_chart.columns[1:]:
+
         
