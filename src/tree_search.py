@@ -1,3 +1,4 @@
+import re
 from numba.core.types.misc import Object
 import numpy as np
 from numba import jit,objmode
@@ -7,35 +8,42 @@ import time
 from graph_algorithms import check_dom_set
 
 
-GO_TO_STEP_2 = np.uint32(0)
-GO_TO_STEP_6 = np.uint32(1)
+GO_TO_STEP_2 = np.uint32(2)
+GO_TO_STEP_5 = np.uint32(5)
+GO_TO_STEP_6 = np.uint32(6)
 
-@jit(["uint32[:](float32[:,:], uint32)"], nopython = True)
-def Gamma_function_vertex(numpy_matrix, vertex_i):
+
+
+@jit(["uint32[:](float32[:,:], uint32[:])"], nopython = True)
+def neighbor_of_set(numpy_matrix, vertex_set):
+    not_neighbor = np.arange(0,len(numpy_matrix[0]),1, dtype=np.uint32)
     domination_set = np.empty(0, dtype=np.uint32)
-    for j, val in enumerate(numpy_matrix[vertex_i]):
-        if vertex_i != j and  numpy_matrix[vertex_i][j] >= np.float32(5):
-            domination_set = np.append(domination_set, np.uint32(j))
+    for i in vertex_set:
+        index_to_delete = np.empty(0, dtype=np.uint32)
+        for vertex_j_index, j  in enumerate(not_neighbor):
+            if i != j and numpy_matrix[i][j]:
+                domination_set = np.append(domination_set, np.uint32(j))
+                index_to_delete = np.append(index_to_delete, np.uint32(vertex_j_index))
+        not_neighbor = np.delete(not_neighbor, index_to_delete)
+
     return domination_set
 
 
 @jit(["boolean(float32[:,:], uint32[:], uint32[:])"], nopython = True)
 def feasibility_test(numpy_matrix, F_k, C_k_plus):
-
+    # Paso 2: Prueba de factibilidad
     for i in C_k_plus: # revisa el item
-        # print(i)
         for j in F_k:
             if i != j and numpy_matrix[i][j] >= np.float32(5):
-                # print("[",i,"]", "[",j,"]:", numpy_matrix[i][j])
                 return np.bool_(True)  
     return np.bool_(False)
 
-@jit(["uint32(float32[:,:], uint32[:], uint32)"], nopython = True)
+@jit(["boolean(float32[:,:], uint32[:], uint32)"], nopython = True)
 def is_dominated(numpy_matrix, Set_k, vertex):
     for i in Set_k:
         if numpy_matrix[i][vertex] >= 5:
-            return np.uint32(1) 
-    return np.uint32(0)
+            return np.bool_(True)
+    return np.bool_(False)
 
 @jit(["Tuple((uint32,uint32))(float32[:,:], uint32[:], uint32[:], uint32[:])"], nopython = True)
 def select_max_brach(numpy_matrix, F_k, C_k_plus, Set_k):
@@ -70,22 +78,27 @@ def reduce_by_union_domination(numpy_matrix, vertex_i, F_k):
     return operation_F_k
 
 
-@jit(["boolean(float32[:,:], uint32, uint32[:])"], nopython = True)
-def check_if_is_dominated_by_set(numpy_matrix, q, dom_set ):
-    is_dominated = np.bool_(False)
-    for i in dom_set:
-        if i != q and numpy_matrix[i][q] >= 5:
+@jit(["boolean(float32[:,:], uint32[:], uint32)"], nopython = True)
+def check_if_is_dominated_by_set(numpy_matrix, Set_k, q ):
+    # Set_k domina -> q
+    for dom_vertex in Set_k: # se revisa por cada vertice si lo domina
+        if dom_vertex != q and numpy_matrix[dom_vertex][q] >= 5:
             return np.bool_(True)
-    return is_dominated
+    return np.bool_(False)
 
 
 dom_set = []
+profundidad = [100000]
 @jit(["uint32(float32[:,:], uint32[:], uint32[:], uint32[:], uint32[:])"], nopython = True)
 def action_step_5(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k):
+    
     if F_k.size == 0:
-        # printt("Es dominante", Set_k)
-        # printt("Con F_k:", F_k)
+        print("-> Agregado", Set_k)
         with objmode():
+            
+            if profundidad[0] > Set_k.size:
+                profundidad[0] = Set_k.size
+                dom_set.clear()
             dom_set.append(Set_k)
         return GO_TO_STEP_6
     else:
@@ -95,27 +108,45 @@ def action_step_5(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k):
 
 
 @jit(["uint32(float32[:,:], uint32[:], uint32[:], uint32[:], uint32[:])"], nopython = True)
-def action_step_4(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k): # es minimal
+def minimality_test(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k): # es minimal
     Set_k_prev = np.copy(Set_k[:-1]) # S_{k-1}
-
-    go_tp_step = np.uint32(5)
-    for q in Set_k_prev:
-        # printt("check if", q, "dom by", Set_k)
-        if check_if_is_dominated_by_set(numpy_matrix, q, Set_k_prev) == True: # verifica si es minimo
-            # # printt(Set_k, "paso 6", F_k)
-            go_tp_step = np.uint32(6)
-            break
-    if go_tp_step == 5:
-        # # printt("Fk",F_k)
+    if F_k.size == 0:
         return action_step_5(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k)
-
-    elif go_tp_step == 6: 
-        for q_index, q in enumerate(Set_k_prev): # antes de ir al paso 6 verfica que cumpla la condicion
-            dom_set_no_q = np.delete(np.copy(Set_k), q_index)
-            for j in Gamma_function_vertex(numpy_matrix, np.uint32(q)):
+        # print("Is dom set", Set_k)
+    # is not minimal if q in Sk -> q in N(Sk) and 
+    for q_index, q in enumerate(Set_k_prev):
+        if q in neighbor_of_set(numpy_matrix, Set_k):
+            for j in neighbor_of_set(numpy_matrix, np.array([q], dtype=np.uint32)):
+                dom_set_no_q = np.delete(np.copy(Set_k), q_index)
                 if j in Set_k or is_dominated(numpy_matrix, dom_set_no_q, j):
-                    return GO_TO_STEP_6
+                    # print("then set", Set_k, "is not minimal", q,"->",j)
+                    return GO_TO_STEP_2
+    
     return action_step_5(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k)
+
+    
+
+    # # evaluation = GO_TO_STEP_5
+    # for q_index, q in enumerate(Set_k_prev): # q in S k-1
+    #     # printt("check if", q, "dom by", Set_k)
+    #     if check_if_is_dominated_by_set(numpy_matrix, Set_k, q ) == True: # verifica si es minimo
+    #         # si existe un q en N(s_k) hay que hacer verificar la siguiente seccion y hacer backtracking
+    #         # evaluation = np.uint32(6)
+            
+    #         break
+
+    #     return GO_TO_STEP_5
+    # # if evaluation == 6:
+    # #     for q_index, q in enumerate(Set_k_prev): # antes de ir al paso 6 verfica que cumpla la condicion
+    # #         dom_set_no_q = np.delete(np.copy(Set_k), q_index) # Set k sin q
+    # #         for j in Gamma_function_vertex(numpy_matrix, np.uint32(q)): # por cada j en L(q)
+    # #             if not (j in Set_k or is_dominated(numpy_matrix, dom_set_no_q, j) == False):
+    # #                 break
+            
+
+    # #     return GO_TO_STEP_6
+
+    # return action_step_5(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k)
 
 
 @jit(["Tuple((uint32[:], uint32[:], uint32[:], uint32[:]))(float32[:,:], uint32[:], uint32[:], uint32[:], uint32[:])"], nopython = True)
@@ -136,26 +167,37 @@ def action_step_3(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k):
 
 
 
+
+
 @jit(["void(float32[:,:], uint32[:], uint32[:], uint32[:], uint32[:])"], nopython = True)
 def action_step_2(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k):
+    max_depth = np.uint32(0)
+    with objmode(max_depth="uint32"):
+        max_depth = profundidad[0]
+    
+    # print(max_depth)
+    if max_depth > Set_k.size:
 
 
-    while feasibility_test(numpy_matrix, F_k, C_k_plus):
+        while feasibility_test(numpy_matrix, F_k, C_k_plus):
+            
 
-        next_Set_k, C_k_plus,C_k_minus, next_F_k = action_step_3(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k) # reduccion para el el siguiente estado
+            next_Set_k, C_k_plus,C_k_minus, next_F_k = action_step_3(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k) # reduccion para el el siguiente estado
 
-        if next_Set_k[0] == 131 and (next_Set_k[1] == 120 and next_Set_k[2] == 97 ):
-            print("Set S", Set_k,"->", next_Set_k, next_F_k)
-        if next_F_k.size == 0:
-            with objmode():
-                dom_set.append(next_Set_k)
-        
+            # if next_Set_k[0] == 131 and (next_Set_k[1] == 120 and next_Set_k[2] == 97 ):
+            #     print("Set S", Set_k,"->", next_Set_k, next_F_k)
+            # if next_F_k.size == 0:
+            #     with objmode():
+            #         dom_set.append(next_Set_k)
+            
 
-        go_to = action_step_4(numpy_matrix, next_Set_k, C_k_plus,C_k_minus, next_F_k) # evaluacion de si el posible set va al paso 2 o 6
+            go_to = minimality_test(numpy_matrix, next_Set_k, C_k_plus,C_k_minus, next_F_k) # evaluacion de si el posible set va al paso 2 o 6
 
-        if go_to == GO_TO_STEP_2:
-            action_step_2(numpy_matrix, next_Set_k, C_k_plus,C_k_minus, next_F_k)
-
+            if go_to == GO_TO_STEP_2:
+                action_step_2(numpy_matrix, next_Set_k, C_k_plus,C_k_minus, next_F_k)
+            
+        else:
+            return
 
     else:
         return
@@ -165,8 +207,6 @@ def action_step_2(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k):
 
 @jit(["void(float32[:,:])"], nopython = True)
 def initialisation(numpy_matrix):
-    
-    
     # Paso 1: iniciar
     Set_k = np.empty(0, dtype=np.uint32)
     C_k_minus = np.empty(0, dtype=np.uint32)
@@ -193,13 +233,18 @@ def initialisation(numpy_matrix):
     
 
 def run(matrix):
+    # print(matrix[7][12])
+    # print(matrix[3][12])
+    matrix = np.array(matrix, dtype=np.float32)
+    print(matrix)
     tic = time.time()
-    initialisation(np.array(matrix, dtype=np.float32))
+    initialisation(matrix)
     toc = time.time()
     print("time tree search:", toc-tic)
     print("Dom set")
     tam=np.size(dom_set[0])
     result=dom_set[0]
+    print("Total elementos:", len(dom_set))
     for i in dom_set:
         #buscar el de menor tamaño
         if tam>np.size(i):
