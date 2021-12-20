@@ -196,7 +196,16 @@ def run(matrix):
     tic = time.time()
     initialisation(np.array(matrix, dtype=np.float32))
     toc = time.time()
-    print("time:", toc-tic)
+    print("time tree search:", toc-tic)
     print("Dom set")
+    tam=np.size(dom_set[0])
+    result=dom_set[0]
     for i in dom_set:
-        print(i)
+        #buscar el de menor tamaño
+        if tam>np.size(i):
+            tam=np.size(i)
+            result=i
+            
+            
+    print(tam,result)
+    return result

@@ -12,23 +12,51 @@ import csv_handler
 import time
 import tree_search
 
+
+def print_msg_box(msg, indent=1, width=None, title=None):
+    # Funcion para imprimir los resultados de forma amigable
+    lines = msg.split('\n')
+    space = " " * indent
+    if not width:
+        width = max(map(len, lines))
+    box = f'╔{"═" * (width + indent * 2)}╗\n'  # upper_border
+    if title:
+        box += f'║{space}{title:<{width}}{space}║\n'  # title
+        box += f'║{space}{"-" * len(title):<{width}}{space}║\n'  # underscore
+    box += ''.join([f'║{space}{line:<{width}}{space}║\n' for line in lines])
+    box += f'╚{"═" * (width + indent * 2)}╝'  # lower_border
+    print(box)
+
 if __name__ == "__main__":
     file_path = sys.argv[1]
 
     # Python obtiene el primer argumento como la ruta del archivo csv
-    adjacency_matrix= csv_handler.csv_to_numpy_matrix_list(file_path)
-    # print(adjacency_matrix)
-    # print("brute force")
-    # tic = time.time()
-    # mds = ga.min_dom_set_bruteforce(adjacency_matrix)
-    # toc = time.time()
-    # print("time:", toc-tic)
+    adjacency_matrix,char_names= csv_handler.csv_to_numpy_matrix_list(file_path)
+    # print(adjacency_matrix,char_names)
+    # csv_handler.csv_to_name(file_path)
+    # print(names)
+    print("brute force")
+    tic = time.time()
+    mds = ga.min_dom_set_bruteforce(adjacency_matrix)
+    toc = time.time()
+    print("time fuerza bruta:", toc-tic)
     # print("no GLR")
     # tic = time.time()
     # mds = ga.min_dom_set(adjacency_matrix)
     # toc = time.time()
     # print("time:", toc-tic)
     a = tree_search.run(adjacency_matrix)
+    msg=' Los personajes son:' 
+    for i in a: 
+        if i!= a[-1]:
+            msg+= char_names[i-1]+ ', '
+        else:
+            msg+= char_names[i-1]+'.'
+    print_msg_box(msg,indent=3,title='Minimo set dominantes')
+
+    
+        
+
     #######################
 
     ######################
@@ -40,7 +68,7 @@ if __name__ == "__main__":
     # print(nx.find_cycle(G1, orientation="original"))
     # nx.draw_kamada_kawai(G1,  with_labels = True)
     # plt.savefig("filename.png")
-    #######################
+    # #######################
     # # for i, arg in enumerate(sys.argv):
     # #     print(f"Argument {i:>6}: {arg}")
     # dm = DataManager(file_path)

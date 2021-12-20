@@ -8,6 +8,7 @@ from pandas.io.parsers.readers import validate_integer
 def csv_to_numpy_matrix_list(file_path):
     mu_chart = pd.read_csv(file_path)
     char_list = list(mu_chart.columns[1:])
+    # print(char_list)
     matrix_list = []
 
     for i in range(0,len(char_list)):
@@ -22,6 +23,6 @@ def csv_to_numpy_matrix_list(file_path):
             else:
                 mu_list.append(0.0)
         matrix_list.append(mu_list) 
-    return matrix_list
+    return matrix_list,char_list
 
-        
+
