@@ -118,12 +118,8 @@ def minimality_test(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k): # es minimal
         if q in neighbor_of_set(numpy_matrix, Set_k):
             for j in neighbor_of_set(numpy_matrix, np.array([q], dtype=np.uint32)):
                 dom_set_no_q = np.delete(np.copy(Set_k), q_index)
-                if j in Set_k:
+                if j in Set_k or is_dominated(numpy_matrix, dom_set_no_q, j):
                     # print("then set", Set_k, "is not minimal", q,"->",j)
-                    return GO_TO_STEP_2
-
-                elif is_dominated(numpy_matrix, dom_set_no_q, j):
-                    # print("then set", Set_k, "is not minimal", dom_set_no_q,"->",q,"->",j)
                     return GO_TO_STEP_2
     
     return action_step_5(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k)
