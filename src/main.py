@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Python obtiene el primer argumento como la ruta del archivo csv
     adjacency_matrix= csv_handler.csv_to_numpy_matrix_list(file_path)
     # print(adjacency_matrix)
-    # print("brute force")
+    print("brute force")
     # tic = time.time()
     # mds = ga.min_dom_set_bruteforce(adjacency_matrix)
     # toc = time.time()

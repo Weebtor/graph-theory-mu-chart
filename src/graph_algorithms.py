@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 from numba import jit,objmode
 from numpy.core.records import array
-
+import time
 
 
 
@@ -175,10 +175,11 @@ def min_dom_set_bruteforce(adjacency_matrix):
     # print(dominating_sets)
     vertex_index = np.arange(0,len(adjacency_matrix[0]),1)
     vertex_len = len(vertex_index)
+    tic = time.time()
     for n in range(1,vertex_len+1):
         if len(dominating_sets) > 0:
             print(dominating_sets)
-
+            print("Total elementos:", len(dominating_sets))
             break
         print("Revisando para n=",n)
         for comb in itertools.combinations(vertex_index,n):
@@ -193,7 +194,10 @@ def min_dom_set_bruteforce(adjacency_matrix):
                 dominating_sets.append(comb)
             # print(comb)
             pass
+    toc = time.time()
+    print("time:", toc-tic)
     best_set,value, set_domination = best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dominating_sets, dtype = np.uint32))
+    
     print(best_set,value, set_domination)
     return dominating_sets
     
