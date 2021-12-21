@@ -93,7 +93,7 @@ profundidad = [100000]
 def action_step_5(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k):
     
     if F_k.size == 0:
-        print("-> Agregado", Set_k)
+        # print("-> Agregado", Set_k)
         with objmode():
             
             if profundidad[0] > Set_k.size:

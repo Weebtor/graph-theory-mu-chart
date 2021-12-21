@@ -28,35 +28,47 @@ def print_msg_box(msg, indent=1, width=None, title=None):
     print(box)
 
 if __name__ == "__main__":
-    file_path = sys.argv[1]
-
+    mode=sys.argv[1]#-Fb,-Ts, -A
+    file_path = sys.argv[2]
     # Python obtiene el primer argumento como la ruta del archivo csv
     adjacency_matrix,char_names= csv_handler.csv_to_numpy_matrix_list(file_path)
-    # print(adjacency_matrix,char_names)
-    # csv_handler.csv_to_name(file_path)
-    # print(names)
-    print("\n\n Fuerza Bruta \n")
-    tic = time.time()
-    mds = ga.min_dom_set_bruteforce(adjacency_matrix)
-    toc = time.time()
-    print("Tiempo fuerza bruta:", toc-tic)
-    # print("no GLR")
-    # tic = time.time()
-    # mds = ga.min_dom_set(adjacency_matrix)
-    # toc = time.time()
-    # print("time:", toc-tic)
-    print('\n\n Tree Search')
-    dom_set = tree_search.run(adjacency_matrix)
-    best_set,value, set_domination = ga.best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dom_set, dtype = np.uint32))
-    # print(best_set,value,dom_set)
-   
-    msg=' Los personajes son: ' 
-    for i in best_set:
-        if i != best_set[-1]:
-            msg+= char_names[i-1]+ ', '
-        else:
-            msg+= char_names[i-1]+'.'
-    print_msg_box(msg,indent=3,title='Minimo set dominantes')
+    if mode =='-Fb' or mode =='-A':
+        
+        
+        # print(adjacency_matrix,char_names)
+        # csv_handler.csv_to_name(file_path)
+        # print(names)
+        print("\n\n Fuerza Bruta \n")
+        tic = time.time()
+        best_set, value = ga.min_dom_set_bruteforce(adjacency_matrix)
+        toc = time.time()
+        print("Tiempo fuerza bruta:", toc-tic)
+        # print("no GLR")
+        # tic = time.time()
+        # mds = ga.min_dom_set(adjacency_matrix)
+        # toc = time.time()
+        # print("time:", toc-tic)
+        msg=' Los personajes son: ' 
+        for i in best_set:
+            if i != best_set[-1]:
+                msg += '['+ str(i)+']'+char_names[i-1]+ ', '
+            else:
+                msg += '['+ str(i)+']'+ char_names[i-1]+'.'
+        print_msg_box(msg,indent=3,title='Minimo set dominante Fuerza Bruta')
+
+    if mode == '-Ts' or mode == '-A':
+        print('\n\n Tree Search')
+        dom_set = tree_search.run(adjacency_matrix)
+        best_set,value, set_domination = ga.best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dom_set, dtype = np.uint32))
+        # print(best_set,value,dom_set)
+    
+        msg=' Los personajes son: ' 
+        for i in best_set:
+            if i != best_set[-1]:
+                msg += '['+ str(i)+']'+ char_names[i-1]+ ', '
+            else:
+                msg += '['+ str(i)+']'+ char_names[i-1]+'.'
+        print_msg_box(msg,indent=3,title='Minimo set dominante Tree Search')
 
     
         
