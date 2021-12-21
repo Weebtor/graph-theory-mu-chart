@@ -4,16 +4,10 @@ from numba import jit,objmode
 from numpy.core.records import array
 import time
 
-
-
-
-
-
 @jit(["uint32(uint32)"],nopython=True)
 def max_dom_set_items(number_of_vertex):
     log2n = np.log2(number_of_vertex)
     return int(log2n) + int(log2n % 1 > 0)
-
 
 @jit(["boolean(float32[:,:],uint32[:],uint32)"], nopython=True)
 def check_dom_set(adjacency_matrix, set, vertex_len):
@@ -25,7 +19,6 @@ def check_dom_set(adjacency_matrix, set, vertex_len):
     
     for i in set:                                       # Intera sobre el set a evaluar
         checked_vertex[i] = 1                           # Marca su propio vertice como dominado
-
         for j, val in enumerate(adjacency_matrix[i]):   # Itera sobre sobre la fila I de la matriz de adjacencia
             if val > 0:                                 # Evalua si existe una arista de I->J
                 checked_vertex[j] = 1                   # Marca el vertice J como dominado
@@ -46,71 +39,11 @@ def get_order(adjacency_matrix, total_items):
 
     return order_list[np.argsort(order_list[:, 1])]
 
-
-
 dom_set = {
     "sets":[],
     "tamaño_actual": 99999999999999999999
 }
-@jit(["uint32(float32[:,:], uint32, uint32[:], uint32[:],uint32, uint32[:])"], nopython = True)
-def not_generalized_leaf_removal(adjacency_matrix, vertex_index, dominated_set, set_route, max_depth, useless_set):
 
-    current_depth = set_route.shape[0]
-
-    if current_depth > max_depth:
-        return np.uint32(max_depth)
-    copy_dominated_set = np.copy(dominated_set) # Realiza una copia de los vertices dominados
-
-
-    copy_dominated_set[vertex_index] = 2                        # Se marca asi mismo com dominado
-    for j, val in enumerate(adjacency_matrix[vertex_index]):    # Itera sobre sobre la fila I de la matriz de adjacencia
-        if val > 0:                                             # Evalua si existe una arista de I->J
-            copy_dominated_set[j] = 1
-
-    is_this_dom_set = np.bool_(True)
-
-    for i, vertex in enumerate(copy_dominated_set):
-        if vertex == 0:
-            is_this_dom_set = np.bool_(False)
-            max_depth = not_generalized_leaf_removal(adjacency_matrix, np.uint32(i),copy_dominated_set, np.append(set_route,i),max_depth, np.append(useless_set,i))
-        # elif vertex == 1: # Verifica si estos vertices son un aporte
-        #     evaluacion_copy = np.copy(dominated_set)
-        #     for j, val in enumerate(adjacency_matrix[i]):
-        #         if val > 0:
-        #             evaluacion_copy[j] = 1
-        #     # print("ev:",evaluacion_copy)
-        #     # print("og:",copy_dominated_set)
-        #     resp = np.array_equal(evaluacion_copy,copy_dominated_set )
-        #     # print("equal:",resp)
-        #     if resp == False and i not in useless_set:
-        #         max_depth = not_generalized_leaf_removal(adjacency_matrix, np.uint32(i),copy_dominated_set, np.append(set_route,i),max_depth, np.append(useless_set,i))
-        #     elif resp == True:
-        #         useless_set = np.append(useless_set,np.uint32(i))
-
-
-            # print(i, vertex)
-            # print(adjacency_matrix)
-            # print(copy)
-    if is_this_dom_set:
-        # print("max_depth:",max_depth)
-        with objmode():  # annotate return type
-            # print("set_dominante encontrado:",set_route)
-            if dom_set["tamaño_actual"] > set_route.size:
-                dom_set["sets"] = []
-            dom_set["sets"].append(set_route)
-        return np.uint32(current_depth)
-    return np.uint32(max_depth)
-
-
-
-def GLR(adjacency_matrix, max_depth):
-    
-    # Reglas de GLR:
-    # 1- Si un vertice i no tiene a nadie que lo domine en el grafo actual, este vertice se considera como candidato a vertice dominante
-    # 2- Si un vertice j tiene un unico vertice que lo puede dominar (vertice k) y j no tiene a quien dominar, k es candidato set dominante
-    # 3- Si un vertice l  puede dominar a solo un vertice (vertice m) 
-
-    pass
 @jit(["Tuple((float32, uint32[:]))(float32[:,:],uint32[:])"], nopython = True)
 def get_mds_value(adjacency_matrix, dominating_set):
     # print(dominating_set)
@@ -196,7 +129,7 @@ def min_dom_set_bruteforce(adjacency_matrix):
             # print(comb)
             pass
     toc = time.time()
-    print("time:", toc-tic)
+    print("Tiempo de busqueda set dominantes: ", toc-tic)
     best_set,value, set_domination = best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dominating_sets, dtype = np.uint32))
     
     # print(best_set,value, set_domination)
