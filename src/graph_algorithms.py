@@ -135,13 +135,14 @@ def best_option_from_dom_set(adjacency_matrix, mds_sets):
     best_set_index = np.uint32(0)
     best_set_value = np.float32(0)
     set_domination = np.array([0],dtype=np.uint32)
-    print("evaluando MDS")
+    print("Evaluando MDS")
     for i, val in enumerate(mds_sets):
         value,domination = get_mds_value(adjacency_matrix,mds_sets[i])
         if value > best_set_value:
             best_set_value = value
             best_set_index = i
             set_domination = domination
+    print('El set elegido es: ', mds_sets[best_set_index], ' con una puntuacion de ', best_set_value)
     return mds_sets[best_set_index],best_set_value, set_domination
 
 def min_dom_set(adjacency_matrix):
@@ -178,7 +179,7 @@ def min_dom_set_bruteforce(adjacency_matrix):
     tic = time.time()
     for n in range(1,vertex_len+1):
         if len(dominating_sets) > 0:
-            print(dominating_sets)
+            # print(dominating_sets)
             print("Total elementos:", len(dominating_sets))
             break
         print("Revisando para n=",n)
@@ -190,7 +191,7 @@ def min_dom_set_bruteforce(adjacency_matrix):
                 np.uint32(vertex_len)
                 ) == True:
                 
-                print("combinacion encontrada", comb)
+                print("Se encontro el set: ", comb)
                 dominating_sets.append(comb)
             # print(comb)
             pass
@@ -198,6 +199,6 @@ def min_dom_set_bruteforce(adjacency_matrix):
     print("time:", toc-tic)
     best_set,value, set_domination = best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dominating_sets, dtype = np.uint32))
     
-    print(best_set,value, set_domination)
-    return dominating_sets
+    # print(best_set,value, set_domination)
+    return best_set,value
     

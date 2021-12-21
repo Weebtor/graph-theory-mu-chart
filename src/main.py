@@ -35,20 +35,24 @@ if __name__ == "__main__":
     # print(adjacency_matrix,char_names)
     # csv_handler.csv_to_name(file_path)
     # print(names)
-    print("brute force")
+    print("\n\n Fuerza Bruta \n")
     tic = time.time()
     mds = ga.min_dom_set_bruteforce(adjacency_matrix)
     toc = time.time()
-    print("time fuerza bruta:", toc-tic)
+    print("Tiempo fuerza bruta:", toc-tic)
     # print("no GLR")
     # tic = time.time()
     # mds = ga.min_dom_set(adjacency_matrix)
     # toc = time.time()
     # print("time:", toc-tic)
-    a = tree_search.run(adjacency_matrix)
-    msg=' Los personajes son:' 
-    for i in a: 
-        if i!= a[-1]:
+    print('\n\n Tree Search')
+    dom_set = tree_search.run(adjacency_matrix)
+    best_set,value, set_domination = ga.best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dom_set, dtype = np.uint32))
+    # print(best_set,value,dom_set)
+   
+    msg=' Los personajes son: ' 
+    for i in best_set:
+        if i != best_set[-1]:
             msg+= char_names[i-1]+ ', '
         else:
             msg+= char_names[i-1]+'.'

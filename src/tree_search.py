@@ -236,21 +236,23 @@ def run(matrix):
     # print(matrix[7][12])
     # print(matrix[3][12])
     matrix = np.array(matrix, dtype=np.float32)
-    print(matrix)
+    # print(matrix)
     tic = time.time()
     initialisation(matrix)
     toc = time.time()
     print("time tree search:", toc-tic)
     print("Dom set")
     tam=np.size(dom_set[0])
-    result=dom_set[0]
-    print("Total elementos:", len(dom_set))
+    # result=dom_set[0]
+    # print("Total elementos:", len(dom_set))
     for i in dom_set:
         #buscar el de menor tamaño
-        if tam>np.size(i):
-            tam=np.size(i)
-            result=i
-            
-            
-    print(tam,result)
-    return result
+        print('Se encontro el set: ',i)
+        # if tam>np.size(i):
+        #     tam=np.size(i)
+        #     result=i
+    # best_set,value, set_domination = best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dominating_sets, dtype = np.uint32))
+
+
+    # print(tam,result)
+    return dom_set
