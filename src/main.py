@@ -13,7 +13,15 @@ import time
 import tree_search
 
 
-def print_msg_box(msg, indent=1, width=None, title=None):
+def print_msg_box(best_set,char_names,indent=1, width=None, title=None):
+
+    msg=' Los personajes son: ' 
+    for i in best_set:
+        if i != best_set[-1]:
+            msg += '['+ str(i)+']'+char_names[i-1]+ ', '
+        else:
+            msg += '['+ str(i)+']'+ char_names[i-1]+'.'
+
     # Funcion para imprimir los resultados de forma amigable
     lines = msg.split('\n')
     space = " " * indent
@@ -48,27 +56,15 @@ if __name__ == "__main__":
         # mds = ga.min_dom_set(adjacency_matrix)
         # toc = time.time()
         # print("time:", toc-tic)
-        msg=' Los personajes son: ' 
-        for i in best_set:
-            if i != best_set[-1]:
-                msg += '['+ str(i)+']'+char_names[i-1]+ ', '
-            else:
-                msg += '['+ str(i)+']'+ char_names[i-1]+'.'
-        print_msg_box(msg,indent=3,title='Minimo set dominante Fuerza Bruta')
+        
+        print_msg_box(best_set,char_names,indent=3,title='Minimo set dominante Fuerza Bruta')
 
     if mode == '-Ts' or mode == '-A':
         print('\n\n Tree Search')
         dom_set = tree_search.run(adjacency_matrix)
         best_set,value, set_domination = ga.best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dom_set, dtype = np.uint32))
         # print(best_set,value,dom_set)
-    
-        msg=' Los personajes son: ' 
-        for i in best_set:
-            if i != best_set[-1]:
-                msg += '['+ str(i)+']'+ char_names[i-1]+ ', '
-            else:
-                msg += '['+ str(i)+']'+ char_names[i-1]+'.'
-        print_msg_box(msg,indent=3,title='Minimo set dominante Tree Search')
+        print_msg_box(best_set,char_names,indent=3,title='Minimo set dominante Tree Search')
 
     
         
