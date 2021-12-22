@@ -57,7 +57,7 @@ if __name__ == "__main__":
         print_msg_box(best_set,char_names,indent=3,title='Minimo set dominante Tree Search')
 
     
-    if mode == '-P' or mode == '-A':
+    if mode == '-P':
         G1 = nx.DiGraph(np.matrix(adjacency_matrix))
         # print(nx.find_cycle(G1, orientation="original"))
         nx.draw_kamada_kawai(G1,  with_labels = True)
