@@ -39,10 +39,10 @@ if __name__ == "__main__":
     mode=sys.argv[1]#-Fb,-Ts, -A
     file_path = sys.argv[2]
     # Python obtiene el primer argumento como la ruta del archivo csv
-    print('Procesando dataset....')
+    print('\nProcesando dataset....\n')
     adjacency_matrix,char_names= csv_handler.csv_to_numpy_matrix_list(file_path)
     if mode =='-Fb' or mode =='-A':
-        print("\n\n Fuerza Bruta \n")
+        print("\n Fuerza Bruta \n")
         tic = time.time()
         best_set, value = bf.min_dom_set_bruteforce(adjacency_matrix)
         toc = time.time()
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         print_msg_box(best_set,char_names,indent=3,title='Minimo set dominante Fuerza Bruta')
 
     if mode == '-Ts' or mode == '-A':
-        print('\n\n Tree Search')
+        print('\n Tree Search')
         dom_set = tree_search.run(adjacency_matrix)
         best_set,value, set_domination = bf.best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dom_set, dtype = np.uint32))
         print_msg_box(best_set,char_names,indent=3,title='Minimo set dominante Tree Search')
