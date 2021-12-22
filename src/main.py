@@ -53,16 +53,13 @@ if __name__ == "__main__":
         print('\n\n Tree Search')
         dom_set = tree_search.run(adjacency_matrix)
         best_set,value, set_domination = bf.best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dom_set, dtype = np.uint32))
-        # print(best_set,value,dom_set)
         print_msg_box(best_set,char_names,indent=3,title='Minimo set dominante Tree Search')
 
     
     if mode == '-P':
         G1 = nx.DiGraph(np.matrix(adjacency_matrix))
-        # print(nx.find_cycle(G1, orientation="original"))
         nx.draw_kamada_kawai(G1,  with_labels = True)
         name=path_leaf(file_path).split('.')[0]
-        print("img/"+name+".png")
         plt.savefig("img/"+name+".png")
     
 

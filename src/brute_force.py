@@ -46,13 +46,9 @@ dom_set = {
 
 @jit(["Tuple((float32, uint32[:]))(float32[:,:],uint32[:])"], nopython = True)
 def get_mds_value(adjacency_matrix, dominating_set):
-    # print(dominating_set)
     dominated_vertex = np.zeros((adjacency_matrix.shape[0]),dtype=np.uint32)
-    # print(dominated_vertex)
-
     acumulated_value = np.float32(0)
-    for j, val in enumerate(dominated_vertex):
-        
+    for j, val in enumerate(dominated_vertex): 
         edge_value = np.float32(0)
         for i in dominating_set:
             if adjacency_matrix[i][j] > edge_value:
@@ -79,7 +75,6 @@ def best_option_from_dom_set(adjacency_matrix, mds_sets):
     return mds_sets[best_set_index],best_set_value, set_domination
 
 def min_dom_set(adjacency_matrix):
-    # print(adjacency_matrix)
     number_of_vertex = np.uint32(len(adjacency_matrix[0]))
     numpy_matrix = np.array(adjacency_matrix, dtype=np.float32)
     max_depth = np.uint32(max_dom_set_items(number_of_vertex))
@@ -97,25 +92,17 @@ def min_dom_set(adjacency_matrix):
             np.array([i], dtype = np.uint32)
         )
     mds = np.array(dom_set["sets"], dtype=np.uint32)
-    # print("mds:",mds)
-    # for i in dom_set:
-    #     if i.size == max_depth:
-    #         mds = np.append(mds, i)
     best_set,value, set_domination = best_option_from_dom_set(numpy_matrix, np.array(mds, dtype = np.uint32))
     print(best_set,value, set_domination)
         
 def min_dom_set_bruteforce(adjacency_matrix):
     dominating_sets = []
-    # print(dominating_sets)
     vertex_index = np.arange(0,len(adjacency_matrix[0]),1)
     vertex_len = len(vertex_index)
     tic = time.time()
     for n in range(1,vertex_len+1):
         if len(dominating_sets) > 0:
-            # print(dominating_sets)
-            print("Total elementos:", len(dominating_sets))
             break
-        print("Revisando para n=",n)
         for comb in itertools.combinations(vertex_index,n):
             # Check if dom set
             if check_dom_set(
@@ -123,15 +110,11 @@ def min_dom_set_bruteforce(adjacency_matrix):
                 np.array(list(comb),dtype=np.uint32), 
                 np.uint32(vertex_len)
                 ) == True:
-                
-                print("Se encontro el set: ", comb)
                 dominating_sets.append(comb)
-            # print(comb)
             pass
     toc = time.time()
     print("Tiempo de busqueda set dominantes: ", toc-tic)
     best_set,value, set_domination = best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dominating_sets, dtype = np.uint32))
     
-    # print(best_set,value, set_domination)
     return best_set,value
     

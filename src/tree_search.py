@@ -116,7 +116,6 @@ def minimality_test(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k): # Step_4 ----
             for j in neighbor_of_set(numpy_matrix, np.array([q], dtype=np.uint32)):
                 dom_set_no_q = np.delete(np.copy(Set_k), q_index)
                 if j in Set_k or is_dominated(numpy_matrix, dom_set_no_q, j):
-                    # print("then set", Set_k, "is not minimal", q,"->",j)
                     return GO_TO_STEP_2
     
     return action_step_5(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k)
@@ -149,8 +148,7 @@ def action_step_2(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k):
     max_depth = np.uint32(0)
     with objmode(max_depth="uint32"):
         max_depth = profundidad[0]
-    
-    # print(max_depth)
+
     if max_depth > Set_k.size:
 
         while feasibility_test(numpy_matrix, F_k, C_k_plus):
@@ -165,9 +163,6 @@ def action_step_2(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k):
 
     else:
         return
-    
-
-
 
 @jit(["void(float32[:,:])"], nopython = True)
 def initialisation(numpy_matrix):
@@ -179,43 +174,14 @@ def initialisation(numpy_matrix):
     # k = Set_k.size
     action_step_2(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k)
 
-    # Step 2: Ver si es factible
-    # if feasibility_test(numpy_matrix, F_k, C_k_plus):
-    #     # printt("es factible")
-    #     Set_k, C_k_plus,C_k_minus, F_k = action_step_3(numpy_matrix, Set_k, C_k_plus,C_k_minus, F_k) # it 1
-    #     # printt(Set_k)
-    #     # printt(C_k_plus)
-    #     # printt(C_k_minus)
-    #     # printt("Non dominated:",F_k)
-        
-
-    
-
-
-        
-
-    
-
 def run(matrix):
-    # print(matrix[7][12])
-    # print(matrix[3][12])
     matrix = np.array(matrix, dtype=np.float32)
-    # print(matrix)
     tic = time.time()
     initialisation(matrix)
     toc = time.time()
     print("Tiempo Tree Search:", toc-tic)
     tam=np.size(dom_set[0])
-    # result=dom_set[0]
-    # print("Total elementos:", len(dom_set))
     for i in dom_set:
         #buscar el de menor tamaño
         print('Se encontro el set: ',i)
-        # if tam>np.size(i):
-        #     tam=np.size(i)
-        #     result=i
-    # best_set,value, set_domination = best_option_from_dom_set(np.array(adjacency_matrix, dtype=np.float32), np.array(dominating_sets, dtype = np.uint32))
-
-
-    # print(tam,result)
     return dom_set
