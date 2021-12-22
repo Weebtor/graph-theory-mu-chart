@@ -17,11 +17,11 @@ def csv_to_numpy_matrix_list(file_path):
         mu_list = []
         for col in mu_chart.columns[1:]:
             value = mu_chart[col][index_char-1]
-            if value != "-" and float(value) > 5 and i!=col:
+            if value != "-" and float(value) >= 5 and i!=col:
                 mu_list.append(float(value))
             else:
                 mu_list.append(0.0)
         matrix_list.append(mu_list) 
-    return matrix_list
+    return matrix_list,char_list
 
-        
+
