@@ -2,9 +2,8 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import sys
 import numpy as np
-
+import ntpath
 import brute_force as bf
-
 import csv_handler
 import time
 import tree_search
@@ -32,6 +31,10 @@ def print_msg_box(best_set,char_names,indent=1, width=None, title=None):
     box += f'╚{"═" * (width + indent * 2)}╝'  # lower_border
     print(box)
 
+def path_leaf(path):
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
+
 if __name__ == "__main__":
     mode=sys.argv[1]#-Fb,-Ts, -A
     file_path = sys.argv[2]
@@ -56,9 +59,9 @@ if __name__ == "__main__":
     
     if mode == '-P' or mode == '-A':
         G1 = nx.DiGraph(np.matrix(adjacency_matrix))
-        print(nx.find_cycle(G1, orientation="original"))
+        # print(nx.find_cycle(G1, orientation="original"))
         nx.draw_kamada_kawai(G1,  with_labels = True)
-        name=file_path.split('/')[-1].split('.')[0]
+        name=path_leaf(file_path).split('.')[0]
         print("img/"+name+".png")
         plt.savefig("img/"+name+".png")
     
